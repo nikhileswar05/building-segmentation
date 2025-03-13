@@ -2,24 +2,8 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.segmentation import felzenszwalb
-from skimage.metrics import adapted_rand_error  # as an example metric
-#from skimage.metrics import structural_similarity as ssim  # Optional: for visual quality assessment
+from skimage.metrics import adapted_rand_error  
 
-# =============================================================================
-# 1. Problem Selection & Dataset Preparation (15 Marks)
-# =============================================================================
-"""
-Problem Statement:
-We address the challenge of detecting buildings from satellite images. Satellite
-imagery often contains noise caused by atmospheric interference, sensor limitations,
-and varying illumination, which negatively impact object detection. Detecting buildings
-is critical for urban planning, disaster management, and environmental monitoring.
-
-Dataset Details:
-- The dataset comprises high-resolution satellite images with diverse landscapes.
-- Noise characteristics include random sensor noise, motion blur, and atmospheric disturbances.
-- Sample images are provided (e.g., 'satellite_image.jpg') along with optional ground truth segmentation ('ground_truth.png').
-"""
 
 def load_dataset(image_path, gt_path=None):
     """
@@ -37,16 +21,6 @@ def load_dataset(image_path, gt_path=None):
         ground_truth = gt
     return image_rgb, ground_truth
 
-# =============================================================================
-# 2. Noise Reduction (10 Marks)
-# =============================================================================
-"""
-Noise Reduction:
-We compare two filtering techniques:
-1. Linear Filter: Gaussian Blur, which is effective at reducing Gaussian noise.
-2. Non-Linear Filter: Median Blur, which preserves edges while reducing salt-and-pepper noise.
-"""
-
 def linear_filter(image_gray):
     """Applies a Gaussian filter (linear) to the grayscale image."""
     return cv2.GaussianBlur(image_gray, (5, 5), sigmaX=1.5)
@@ -54,19 +28,6 @@ def linear_filter(image_gray):
 def nonlinear_filter(image_gray):
     """Applies a Median filter (non-linear) to the grayscale image."""
     return cv2.medianBlur(image_gray, 5)
-
-# =============================================================================
-# 3. Segmentation and Object Extraction (30 Marks)
-# =============================================================================
-"""
-Segmentation Techniques:
-We implement and compare three segmentation approaches:
-1. K-Means Segmentation: Clusters pixel intensities.
-2. Mean Shift Segmentation: Uses spatial/color information to segment.
-3. Graph-Based Segmentation: Applies Felzenszwalb's algorithm for a region-based approach.
-
-Based on boundary detection accuracy and simplicity for building outlines, one method can be selected.
-"""
 
 def segmentation_kmeans(image_gray, K=2):
     """Segments image using K-Means clustering."""
@@ -95,15 +56,6 @@ def segmentation_graph_based(image_rgb):
     segments = felzenszwalb(image_float, scale=100, sigma=0.5, min_size=50)
     return segments
 
-# =============================================================================
-# 4. Region-Based Processing (20 Marks)
-# =============================================================================
-"""
-Region-Based Processing:
-We refine detected objects using a region-growing algorithm and connected component
-analysis to remove small noisy regions. This helps to enhance building boundaries.
-"""
-
 def region_growing(image_gray, seed_point, threshold=15):
     """
     Applies a simple region-growing algorithm starting from a seed point.
@@ -127,19 +79,6 @@ def remove_small_components(binary_image, min_area=500):
             output[labels == i] = 255
     return output
 
-# =============================================================================
-# 5. Final Evaluation & Report (15 Marks)
-# =============================================================================
-"""
-Evaluation Metrics:
-We evaluate segmentation performance using:
-- Intersection over Union (IoU)
-- Dice Coefficient
-- Pixel Accuracy
-
-Visual comparisons are also provided.
-"""
-
 def compute_iou(pred, gt):
     """Computes the Intersection over Union (IoU) metric."""
     intersection = np.logical_and(pred, gt)
@@ -156,16 +95,6 @@ def compute_dice(pred, gt):
 def compute_pixel_accuracy(pred, gt):
     """Computes pixel accuracy."""
     return np.sum(pred == gt) / pred.size
-
-# =============================================================================
-# 6. Innovation in Problem Statement & Approach (10 Marks)
-# =============================================================================
-"""
-Innovation:
-In addition to traditional segmentation methods, we include an adaptive thresholding
-technique that customizes the threshold based on local image statistics. This approach
-can better handle images with varying illumination.
-"""
 
 def adaptive_segmentation(image_gray):
     """Adaptive segmentation using adaptive Gaussian thresholding."""
@@ -264,8 +193,8 @@ def main():
     plt.tight_layout()
     plt.show()
     
-    # For further processing, we choose K-Means segmentation (binary_km) as an example.
-    selected_segmentation = binary_km
+    # For further processing, we choose Mean Shift segmentation (binary_ms) as an example.
+    selected_segmentation = binary_ms
     
     # ----------------------------
     # Section 4: Region-Based Processing
@@ -308,11 +237,6 @@ def main():
     else:
         print("No ground truth provided for quantitative evaluation.")
     
-    # ----------------------------
-    # Section 6: Innovation in Problem Statement & Approach
-    # ----------------------------
-    # The adaptive segmentation method above shows an innovative approach by leveraging
-    # local thresholding, which can adapt to varying illumination and noise conditions.
     
 if __name__ == "__main__":
     main()
